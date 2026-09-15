@@ -10,63 +10,63 @@ print(pd.read_sql("""SELECT * FROM sqlite_master""", conn))
 
 # ===== Part 1: Join and Filter =====
 
-# Q1: Boston employees
-q1 = pd.read_sql("""
-SELECT firstName, lastName, jobTitle
+# df_boston: Boston employees
+df_boston = pd.read_sql("""
+SELECT firstName, lastName
 FROM employees e
 JOIN offices o ON e.officeCode = o.officeCode
 WHERE o.city = 'Boston'
 """, conn)
-print("Q1:\n", q1, "\n")
+print("df_boston:\n", df_boston, "\n")
 
-# Q2: Offices with zero employees
-q2 = pd.read_sql("""
+# df_zero_emp: Offices with zero employees
+df_zero_emp = pd.read_sql("""
 SELECT o.officeCode, o.city
 FROM offices o
 LEFT JOIN employees e ON o.officeCode = e.officeCode
 WHERE e.employeeNumber IS NULL
 """, conn)
-print("Q2:\n", q2, "\n")
+print("df_zero_emp:\n", df_zero_emp, "\n")
 
 
 # ===== Part 2: Type of Join =====
 
-# Q3: All employees + office city/state
-q3 = pd.read_sql("""
+# df_employee: All employees + office city/state
+df_employee = pd.read_sql("""
 SELECT e.firstName, e.lastName, o.city, o.state
 FROM employees e
 LEFT JOIN offices o ON e.officeCode = o.officeCode
 ORDER BY e.firstName, e.lastName
 """, conn)
-print("Q3:\n", q3, "\n")
+print("df_employee:\n", df_employee, "\n")
 
-# Q4: Customers with no orders (should be 24 rows)
-q4 = pd.read_sql("""
+# df_contacts: Customers with no orders
+df_contacts = pd.read_sql("""
 SELECT c.contactFirstName, c.contactLastName, c.phone, c.salesRepEmployeeNumber
 FROM customers c
 LEFT JOIN orders o ON c.customerNumber = o.customerNumber
 WHERE o.orderNumber IS NULL
 ORDER BY c.contactLastName
 """, conn)
-print("Q4:\n", q4, "\n")
+print("df_contacts:\n", df_contacts, "\n")
 
 
 # ===== Part 3: Built-In Function =====
 
-# Q5: Customer payments, sorted by amount (CAST needed)
-q5 = pd.read_sql("""
+# df_payment: Customer payments, sorted by amount
+df_payment = pd.read_sql("""
 SELECT c.contactFirstName, c.contactLastName, p.amount, p.paymentDate
 FROM customers c
 JOIN payments p ON c.customerNumber = p.customerNumber
 ORDER BY CAST(p.amount AS REAL) DESC
 """, conn)
-print("Q5:\n", q5, "\n")
+print("df_payment:\n", df_payment, "\n")
 
 
 # ===== Part 4: Joining and Grouping =====
 
-# Q6: Reps with avg customer credit limit > 90k (should be 4 people)
-q6 = pd.read_sql("""
+# df_credit: Reps with avg customer credit limit > 90k
+df_credit = pd.read_sql("""
 SELECT e.employeeNumber, e.firstName, e.lastName, COUNT(c.customerNumber) AS numcustomers
 FROM employees e
 JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
@@ -74,10 +74,10 @@ GROUP BY e.employeeNumber, e.firstName, e.lastName
 HAVING AVG(CAST(c.creditLimit AS REAL)) > 90000
 ORDER BY numcustomers DESC
 """, conn)
-print("Q6:\n", q6, "\n")
+print("df_credit:\n", df_credit, "\n")
 
-# Q7: Product order counts + total units sold
-q7 = pd.read_sql("""
+# df_product_sold: Product order counts + total units sold
+df_product_sold = pd.read_sql("""
 SELECT p.productName,
        COUNT(od.orderNumber) AS numorders,
        SUM(od.quantityOrdered) AS totalunits
@@ -86,13 +86,13 @@ JOIN orderdetails od ON p.productCode = od.productCode
 GROUP BY p.productCode, p.productName
 ORDER BY totalunits DESC
 """, conn)
-print("Q7:\n", q7, "\n")
+print("df_product_sold:\n", df_product_sold, "\n")
 
 
 # ===== Part 5: Multiple Joins =====
 
-# Q8: Product + distinct purchaser count
-q8 = pd.read_sql("""
+# df_total_customers: Product + distinct purchaser count
+df_total_customers = pd.read_sql("""
 SELECT p.productName, p.productCode,
        COUNT(DISTINCT o.customerNumber) AS numpurchasers
 FROM products p
@@ -101,23 +101,23 @@ JOIN orders o ON od.orderNumber = o.orderNumber
 GROUP BY p.productCode, p.productName
 ORDER BY numpurchasers DESC
 """, conn)
-print("Q8:\n", q8, "\n")
+print("df_total_customers:\n", df_total_customers, "\n")
 
-# Q9: Customers per office
-q9 = pd.read_sql("""
+# df_customers: Customers per office
+df_customers = pd.read_sql("""
 SELECT o.officeCode, o.city, COUNT(c.customerNumber) AS n_customers
 FROM offices o
 JOIN employees e ON o.officeCode = e.officeCode
 JOIN customers c ON e.employeeNumber = c.salesRepEmployeeNumber
 GROUP BY o.officeCode, o.city
 """, conn)
-print("Q9:\n", q9, "\n")
+print("df_customers:\n", df_customers, "\n")
 
 
 # ===== Part 6: Subquery =====
 
-# Q10: Employees who sold products ordered by fewer than 20 customers
-q10 = pd.read_sql("""
+# df_under_20: Employees who sold products ordered by fewer than 20 customers
+df_under_20 = pd.read_sql("""
 SELECT DISTINCT e.employeeNumber, e.firstName, e.lastName, o.city, o.officeCode
 FROM employees e
 JOIN offices o ON e.officeCode = o.officeCode
@@ -132,8 +132,8 @@ WHERE od.productCode IN (
     HAVING COUNT(DISTINCT ord2.customerNumber) < 20
 )
 """, conn)
-print("Q10:\n", q10, "\n")
+print("df_under_20:\n", df_under_20, "\n")
 
 
-# Q11: Close the connection
+# Close the connection
 conn.close()
